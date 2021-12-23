@@ -3,6 +3,7 @@ package spring.jpa.postgresql.Controller;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import spring.jpa.postgresql.Entity.Client;
@@ -21,42 +22,42 @@ public class ClientController {
 
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)// a cada finalização com sucesso precisamos retornar um status // status 201
-    public Client salvar(@RequestBody Client client){
-        return clientService.salvar(client);
+    public ResponseEntity<Client> salvar(@RequestBody Client client){
+        Client client1 = clientService.salvar(client);
+        return ResponseEntity.ok(client);
     }
+
+
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<Client> listaClient(){
         return clientService.listaClient();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public Client buscarClientPorId(@PathVariable("id") Long id){
-        return clientService.buscarPorId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente nao encontrado."));
-        // Se um valor estiver presente, retorna o valor, caso contrário, lança a exceção informada no parâmetro.
+    public ResponseEntity<Client> buscarClientPorId(@PathVariable("id") Long id){
+        Client client = clientService.buscarPorId(id).
+                orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CLiente não encontrado"));
+        return ResponseEntity.ok(client);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removerClient(@PathVariable("id") Long id){
+    public ResponseEntity <Client>removerClient(@PathVariable("id") Long id){
         clientService.buscarPorId(id)
                 .map(client -> {
                     clientService.removerPorId(client.getId());
-                    return Void.TYPE;
+                    return ResponseEntity.ok(client);
                 }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente nao encontrado."));
+        return null;
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void atualizarClient(@PathVariable("id") Long id, @RequestBody Client client) {
+    public ResponseEntity<Client> atualizarClient(@PathVariable("id") Long id, @RequestBody Client client) {
         clientService.buscarPorId(id)
                 .map(clientBase -> {
                     modelMapper.map(client, clientBase);
                     clientService.salvar(clientBase);
-                    return Void.TYPE;
+                    return ResponseEntity.ok(client);
                 }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente nao encontrado."));
+        return null;
     }
 }
